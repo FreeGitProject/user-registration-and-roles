@@ -1,0 +1,146 @@
+"use client"
+
+import React from "react"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useAuth } from "@/components/auth-provider"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Shield, User, Loader2 } from "lucide-react"
+
+export default function RegisterPage() {
+  const { register } = useAuth()
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState<"admin" | "user">("user")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+
+    const result = await register(name, email, password, role)
+
+    if (!result.success) {
+      setError(result.error || "Registration failed")
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-2">
+            <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
+              <Shield className="h-6 w-6 text-primary-foreground" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardDescription>
+            Enter your details below to create your account
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                {error}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                minLength={6}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Account Type</Label>
+              <Select value={role} onValueChange={(value: "admin" | "user") => setRole(value)} disabled={isLoading}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>User</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      <span>Admin</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {role === "admin" 
+                  ? "Admins can manage products, orders, and users"
+                  : "Users can view products and manage their orders"
+                }
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create account"
+              )}
+            </Button>
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/login" className="text-primary hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  )
+}
